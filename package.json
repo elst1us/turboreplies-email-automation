@@ -1,0 +1,22 @@
+{
+  "name": "turboreplies-email-automation",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Local Google Sheets outreach automation for TurboReplies",
+  "scripts": {
+    "build": "node node_modules/typescript/bin/tsc -p tsconfig.json",
+    "dry-run": "node node_modules/tsx/dist/cli.cjs src/index.ts --dry-run",
+    "send": "node node_modules/tsx/dist/cli.cjs src/index.ts --send"
+  },
+  "dependencies": {
+    "dotenv": "^16.6.1",
+    "googleapis": "^150.0.1",
+    "imapflow": "^1.1.1",
+    "resend": "^4.7.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.3",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3"
+  }
+}

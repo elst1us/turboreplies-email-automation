@@ -125,14 +125,17 @@ This sends through Resend and updates the sheet only after each successful send.
   - `Status = Active`
   - `Follow-up Step = 1`
   - `Next Follow-up` is today or earlier
+  - if `Next Follow-up` is blank, the tool falls back to `Date sent + 3 days`
 - Follow-up 2:
   - `Status = Active`
   - `Follow-up Step = 2`
   - `Next Follow-up` is today or earlier
+  - if `Next Follow-up` is blank, the tool falls back to `Date sent + 7 days`
 - Follow-up 3:
   - `Status = Active`
   - `Follow-up Step = 3`
   - `Next Follow-up` is today or earlier
+  - if `Next Follow-up` is blank, the tool falls back to `Date sent + 14 days`
 - Never send:
   - when `Email` is empty
   - when `Replied? = TRUE`

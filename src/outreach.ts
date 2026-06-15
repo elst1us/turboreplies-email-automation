@@ -107,6 +107,22 @@ function addDays(date: Date, days: number): Date {
   return next;
 }
 
+function cumulativeFollowUpOffsetDays(followUpStep: string): number | null {
+  if (followUpStep === "1") {
+    return 3;
+  }
+
+  if (followUpStep === "2") {
+    return 7;
+  }
+
+  if (followUpStep === "3") {
+    return 14;
+  }
+
+  return null;
+}
+
 function parseSheetDate(value: SheetCellValue): Date | null {
   if (value === "" || value === false) {
     return null;
@@ -198,6 +214,23 @@ function getThreadToken(row: OutreachRow): string {
   return extractThreadToken(row.cells.Notes) ?? createThreadToken(row);
 }
 
+function resolveNextFollowUpDate(row: OutreachRow): Date | null {
+  const explicitNextFollowUp = parseSheetDate(row.cells["Next Follow-up"]);
+  if (explicitNextFollowUp) {
+    return explicitNextFollowUp;
+  }
+
+  const followUpStep = textValue(row.cells["Follow-up Step"]);
+  const sentAt = parseSheetDate(row.cells["Date sent"]);
+  const offsetDays = cumulativeFollowUpOffsetDays(followUpStep);
+
+  if (!sentAt || offsetDays === null) {
+    return null;
+  }
+
+  return startOfDay(addDays(sentAt, offsetDays));
+}
+
 function rowLabel(row: OutreachRow): string {
   const property = textValue(row.cells.Property);
   const email = textValue(row.cells.Email);
@@ -229,7 +262,7 @@ function buildCandidate(row: OutreachRow, today: Date, now: Date): SendCandidate
 
   const status = textValue(row.cells.Status);
   const followUpStep = textValue(row.cells["Follow-up Step"]);
-  const nextFollowUp = parseSheetDate(row.cells["Next Follow-up"]);
+  const nextFollowUp = resolveNextFollowUpDate(row);
   const todayStart = startOfDay(today);
   const threadToken = getThreadToken(row);
 

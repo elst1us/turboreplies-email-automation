@@ -36,9 +36,8 @@ export class ImapReplyDetector {
     this.connected = false;
   }
 
-  async hasReplySince(email: string, sentAt: Date): Promise<boolean> {
+  async hasReplySince(email: string, sentAt: Date, threadToken?: string): Promise<boolean> {
     const uids = await this.client.search({
-      from: email,
       since: sentAt
     });
 
@@ -53,8 +52,20 @@ export class ImapReplyDetector {
       const receivedAt = message.envelope?.date ?? message.internalDate;
       const receivedDate =
         receivedAt instanceof Date ? receivedAt : receivedAt ? new Date(receivedAt) : null;
+      const normalizedEmail = email.trim().toLowerCase();
+      const fromAddresses = (message.envelope?.from ?? [])
+        .map((entry) => entry.address?.trim().toLowerCase())
+        .filter((value): value is string => Boolean(value));
+      const subject = message.envelope?.subject ?? "";
+      const matchesEmail = fromAddresses.includes(normalizedEmail);
+      const matchesThreadToken = threadToken ? subject.includes(threadToken) : false;
 
-      if (receivedDate && !Number.isNaN(receivedDate.getTime()) && receivedDate.getTime() > sentAt.getTime()) {
+      if (
+        receivedDate &&
+        !Number.isNaN(receivedDate.getTime()) &&
+        receivedDate.getTime() > sentAt.getTime() &&
+        (matchesEmail || matchesThreadToken)
+      ) {
         return true;
       }
     }

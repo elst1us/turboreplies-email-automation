@@ -1,8 +1,12 @@
+import { existsSync, readFileSync } from "node:fs";
+import path from "node:path";
 import { GoogleSheetsClient } from "./googleSheets";
 import { ImapReplyDetector } from "./imapReplies";
 import { ResendClient } from "./resendClient";
 import { buildEmail } from "./templates";
 import { AppConfig, OutreachRow, RowUpdate, SendCandidate, SheetCellValue, SHEET_COLUMNS } from "./types";
+
+const DEFAULT_SERVICE_ACCOUNT_JSON_PATH = "google-service-account.json";
 
 function requiredEnv(name: string): string {
   const value = process.env[name]?.trim();
@@ -32,6 +36,51 @@ function numberEnv(name: string, defaultValue: number): number {
   }
 
   return parsed;
+}
+
+function optionalEnv(name: string): string | undefined {
+  const value = process.env[name]?.trim();
+  return value ? value : undefined;
+}
+
+function loadGoogleCredentials(): { serviceAccountEmail: string; privateKey: string } {
+  const configuredJsonPath = optionalEnv("GOOGLE_SERVICE_ACCOUNT_JSON_PATH");
+  const defaultJsonPath = path.resolve(process.cwd(), DEFAULT_SERVICE_ACCOUNT_JSON_PATH);
+  const serviceAccountJsonPath = configuredJsonPath
+    ? path.resolve(process.cwd(), configuredJsonPath)
+    : existsSync(defaultJsonPath)
+      ? defaultJsonPath
+      : undefined;
+
+  if (serviceAccountJsonPath) {
+    let parsed: unknown;
+
+    try {
+      parsed = JSON.parse(readFileSync(serviceAccountJsonPath, "utf8"));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(`Unable to read Google service account JSON at ${serviceAccountJsonPath}: ${message}`);
+    }
+
+    const clientEmail =
+      typeof parsed === "object" && parsed !== null && "client_email" in parsed ? parsed.client_email : undefined;
+    const privateKey =
+      typeof parsed === "object" && parsed !== null && "private_key" in parsed ? parsed.private_key : undefined;
+
+    if (typeof clientEmail !== "string" || typeof privateKey !== "string") {
+      throw new Error(`Google service account JSON at ${serviceAccountJsonPath} is missing client_email or private_key.`);
+    }
+
+    return {
+      serviceAccountEmail: clientEmail,
+      privateKey
+    };
+  }
+
+  return {
+    serviceAccountEmail: requiredEnv("GOOGLE_SERVICE_ACCOUNT_EMAIL"),
+    privateKey: requiredEnv("GOOGLE_PRIVATE_KEY").replace(/\\n/g, "\n")
+  };
 }
 
 function startOfDay(date: Date): Date {
@@ -123,6 +172,32 @@ function appendNote(existing: SheetCellValue, note: string, now: Date): string {
   return current ? `${current}\n${prefix}` : prefix;
 }
 
+function createThreadToken(row: OutreachRow): string {
+  const seed = [
+    textValue(row.cells.Email).toLowerCase(),
+    textValue(row.cells.Property).toLowerCase(),
+    textValue(row.cells.Location).toLowerCase(),
+    textValue(row.cells.Village).toLowerCase(),
+    String(row.rowNumber)
+  ].join("|");
+  let hash = 0;
+
+  for (let index = 0; index < seed.length; index += 1) {
+    hash = (hash * 31 + seed.charCodeAt(index)) >>> 0;
+  }
+
+  return `TR-${hash.toString(36).toUpperCase().padStart(6, "0")}`;
+}
+
+function extractThreadToken(notes: SheetCellValue): string | null {
+  const match = String(notes || "").match(/\bTR-[A-Z0-9]{6,}\b/);
+  return match ? match[0] : null;
+}
+
+function getThreadToken(row: OutreachRow): string {
+  return extractThreadToken(row.cells.Notes) ?? createThreadToken(row);
+}
+
 function rowLabel(row: OutreachRow): string {
   const property = textValue(row.cells.Property);
   const email = textValue(row.cells.Email);
@@ -156,6 +231,7 @@ function buildCandidate(row: OutreachRow, today: Date, now: Date): SendCandidate
   const followUpStep = textValue(row.cells["Follow-up Step"]);
   const nextFollowUp = parseSheetDate(row.cells["Next Follow-up"]);
   const todayStart = startOfDay(today);
+  const threadToken = getThreadToken(row);
 
   if (status === "To do" && followUpStep === "0") {
     return {
@@ -166,9 +242,9 @@ function buildCandidate(row: OutreachRow, today: Date, now: Date): SendCandidate
         "Date sent": formatDate(todayStart),
         "Next Follow-up": formatDate(addDays(todayStart, 3)),
         "Follow-up Step": "1",
-        Notes: appendNote(row.cells.Notes, "First email sent via Resend", now)
+        Notes: appendNote(row.cells.Notes, `First email sent via Resend (${threadToken})`, now)
       },
-      email: buildEmail(row, 0)
+      email: buildEmail(row, 0, threadToken)
     };
   }
 
@@ -183,9 +259,9 @@ function buildCandidate(row: OutreachRow, today: Date, now: Date): SendCandidate
       updates: {
         "Next Follow-up": formatDate(addDays(todayStart, 4)),
         "Follow-up Step": "2",
-        Notes: appendNote(row.cells.Notes, "Follow-up 1 sent via Resend", now)
+        Notes: appendNote(row.cells.Notes, `Follow-up 1 sent via Resend (${threadToken})`, now)
       },
-      email: buildEmail(row, 1)
+      email: buildEmail(row, 1, threadToken)
     };
   }
 
@@ -196,9 +272,9 @@ function buildCandidate(row: OutreachRow, today: Date, now: Date): SendCandidate
       updates: {
         "Next Follow-up": formatDate(addDays(todayStart, 7)),
         "Follow-up Step": "3",
-        Notes: appendNote(row.cells.Notes, "Follow-up 2 sent via Resend", now)
+        Notes: appendNote(row.cells.Notes, `Follow-up 2 sent via Resend (${threadToken})`, now)
       },
-      email: buildEmail(row, 2)
+      email: buildEmail(row, 2, threadToken)
     };
   }
 
@@ -210,9 +286,9 @@ function buildCandidate(row: OutreachRow, today: Date, now: Date): SendCandidate
         Status: "Not interested",
         "Next Follow-up": "",
         "Follow-up Step": "Done",
-        Notes: appendNote(row.cells.Notes, "Follow-up 3 sent via Resend, sequence ended", now)
+        Notes: appendNote(row.cells.Notes, `Follow-up 3 sent via Resend, sequence ended (${threadToken})`, now)
       },
-      email: buildEmail(row, 3)
+      email: buildEmail(row, 3, threadToken)
     };
   }
 
@@ -231,6 +307,7 @@ export function loadConfig(mode: "dry-run" | "send"): AppConfig {
   const fromName = process.env.OUTREACH_FROM_NAME?.trim() || "Federico | TurboReplies";
   const replyTo = process.env.OUTREACH_REPLY_TO?.trim() || fromEmail;
   const resendApiKey = mode === "send" ? requiredEnv("RESEND_API_KEY") : process.env.RESEND_API_KEY?.trim() || "dry-run";
+  const googleCredentials = loadGoogleCredentials();
 
   return {
     mode,
@@ -240,8 +317,8 @@ export function loadConfig(mode: "dry-run" | "send"): AppConfig {
     googleSheets: {
       sheetId: requiredEnv("GOOGLE_SHEET_ID"),
       sheetName: requiredEnv("GOOGLE_SHEET_NAME"),
-      serviceAccountEmail: requiredEnv("GOOGLE_SERVICE_ACCOUNT_EMAIL"),
-      privateKey: requiredEnv("GOOGLE_PRIVATE_KEY").replace(/\\n/g, "\n")
+      serviceAccountEmail: googleCredentials.serviceAccountEmail,
+      privateKey: googleCredentials.privateKey
     },
     resend: {
       apiKey: resendApiKey,
@@ -285,11 +362,12 @@ export async function runOutreach(config: AppConfig): Promise<void> {
 
         const email = textValue(row.cells.Email);
         const sentAt = parseSheetDate(row.cells["Date sent"]);
+        const threadToken = extractThreadToken(row.cells.Notes) ?? undefined;
         if (!email || !sentAt) {
           continue;
         }
 
-        const hasReply = await detector.hasReplySince(email, sentAt);
+        const hasReply = await detector.hasReplySince(email, sentAt, threadToken);
         if (!hasReply) {
           continue;
         }

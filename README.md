@@ -44,25 +44,34 @@ npm install
 4. Go to `APIs & Services` -> `Credentials`.
 5. Create a `Service account`.
 6. Create a JSON key for that service account.
-7. Copy the service account email into `GOOGLE_SERVICE_ACCOUNT_EMAIL`.
-8. Copy the private key into `GOOGLE_PRIVATE_KEY`.
-   Put it on one line in `.env` and keep the escaped newlines, for example:
+7. Download the JSON key file.
+8. Put that JSON file at the repo root as `google-service-account.json`.
+   This file is already ignored by git.
+9. Open your existing Google Sheet.
+10. Share the sheet with the service account email from the JSON file's `client_email`.
+    The service account needs edit access so the tool can update existing cells.
+
+Preferred local setup:
+
+```env
+GOOGLE_SERVICE_ACCOUNT_JSON_PATH=./google-service-account.json
+```
+
+Optional fallback:
+
+If you do not want to keep the JSON file in the repo root, you can still copy the service account email into `GOOGLE_SERVICE_ACCOUNT_EMAIL` and the private key into `GOOGLE_PRIVATE_KEY`.
+Put the private key on one line in `.env` and keep the escaped newlines, for example:
 
 ```env
 GOOGLE_PRIVATE_KEY=-----BEGIN PRIVATE KEY-----\nABC...\n-----END PRIVATE KEY-----\n
 ```
-
-9. Open your existing Google Sheet.
-10. Share the sheet with the service account email from step 7.
-    The service account needs edit access so the tool can update existing cells.
 
 ## Required environment variables
 
 ```env
 GOOGLE_SHEET_ID=
 GOOGLE_SHEET_NAME=
-GOOGLE_SERVICE_ACCOUNT_EMAIL=
-GOOGLE_PRIVATE_KEY=
+GOOGLE_SERVICE_ACCOUNT_JSON_PATH=./google-service-account.json
 RESEND_API_KEY=
 OUTREACH_FROM_EMAIL=hello@turboreplies.com
 OUTREACH_FROM_NAME=Federico | TurboReplies
@@ -75,6 +84,13 @@ IMAP_PORT=993
 IMAP_SECURE=true
 IMAP_USER=hello@turboreplies.com
 IMAP_PASS=
+```
+
+Fallback auth variables if you are not using the JSON file:
+
+```env
+GOOGLE_SERVICE_ACCOUNT_EMAIL=
+GOOGLE_PRIVATE_KEY=
 ```
 
 `IMAP_*` values are required only when `CHECK_REPLIES=true`.
@@ -135,6 +151,7 @@ For rows where:
 - `Replied?` is not `TRUE`
 
 it searches the inbox for messages from the row email address and only counts messages dated after `Date sent`.
+For newly sent emails, it also embeds a stable thread token in the subject so replies can still be detected even when the sender responds from a different address.
 
 If a reply is found:
 

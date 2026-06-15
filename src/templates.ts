@@ -30,12 +30,16 @@ function optionalHook(row: OutreachRow): string {
   return hook ? `\n\n${hook}` : "";
 }
 
-export function buildEmail(row: OutreachRow, followUpStep: number): EmailContent {
+function withThreadToken(subject: string, threadToken: string): string {
+  return `[${threadToken}] ${subject}`;
+}
+
+export function buildEmail(row: OutreachRow, followUpStep: number, threadToken: string): EmailContent {
   const name = pickContactName(row);
   const property = propertyLabel(row);
 
   if (followUpStep === 0) {
-    const subject = `Quick idea for ${property}`;
+    const subject = withThreadToken(`Quick idea for ${property}`, threadToken);
     const text = `Hi ${name},
 
 I’m Federico from TurboReplies. We help hospitality teams respond to guest messages faster without adding operational overhead.
@@ -60,7 +64,7 @@ ${String(row.cells.Hook || "").trim() ? `<p>${String(row.cells.Hook).trim()}</p>
 
   if (followUpStep === 1) {
     return {
-      subject: `Following up on ${property}`,
+      subject: withThreadToken(`Following up on ${property}`, threadToken),
       text: `Hi ${name},
 
 Following up on my note about TurboReplies for ${property}.
@@ -78,7 +82,7 @@ Federico`,
 
   if (followUpStep === 2) {
     return {
-      subject: `Should I close the loop on ${property}?`,
+      subject: withThreadToken(`Should I close the loop on ${property}?`, threadToken),
       text: `Hi ${name},
 
 Just checking once more on my previous message.
@@ -95,7 +99,7 @@ Federico`,
   }
 
   return {
-    subject: `Last follow-up for ${property}`,
+    subject: withThreadToken(`Last follow-up for ${property}`, threadToken),
     text: `Hi ${name},
 
 I’ll close the loop after this note.

@@ -8,6 +8,7 @@
     "dry-run": "node node_modules/tsx/dist/cli.cjs src/index.ts --dry-run",
     "send": "node node_modules/tsx/dist/cli.cjs src/index.ts --send",
     "draft": "node node_modules/tsx/dist/cli.cjs src/draft.ts",
+    "mark-sent": "node node_modules/tsx/dist/cli.cjs src/markSent.ts",
     "add": "node node_modules/tsx/dist/cli.cjs src/add.ts"
   },
   "dependencies": {

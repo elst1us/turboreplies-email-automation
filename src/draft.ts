@@ -25,6 +25,14 @@ async function main(): Promise<void> {
     if (isTrue(row.cells["Replied?"])) continue;
     if (isTrue(row.cells["Do Not Contact?"])) continue;
 
+    // Only render genuine first-email candidates (Status blank/"To do" and
+    // Follow-up Step blank/"0") so leads already in the follow-up sequence
+    // aren't re-drafted as if they were new.
+    const status = String(row.cells.Status ?? "").trim();
+    const step = String(row.cells["Follow-up Step"] ?? "").trim();
+    if (status !== "" && status !== "To do") continue;
+    if (step !== "" && step !== "0") continue;
+
     const content = buildEmail(row, 0);
     shown += 1;
 

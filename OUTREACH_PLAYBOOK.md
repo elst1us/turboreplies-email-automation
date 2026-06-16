@@ -53,13 +53,21 @@ the schema):
 npm run draft
 ```
 
-Prints subject + body for every contactable lead (has `Email`, not `Replied?`,
-not `Do Not Contact?`). Copy-paste into your mailbox and send. Sends nothing,
-writes nothing.
+Prints subject + body for every lead that still needs a first email (`Status`
+blank/`To do`, `Follow-up Step` blank/`0`, has `Email`, not `Replied?`/`Do Not
+Contact?`). Copy-paste into your mailbox and send. Sends nothing, writes nothing.
 
-After sending a row by hand, set these in `leads.csv` so the automation takes
-over the follow-ups: `Status = Active`, `Date sent = today`,
-`Follow-up Step = 1`, `Next Follow-up = today + 3 days`.
+After sending, record it so the automation takes over the follow-ups — don't
+hand-edit dates:
+
+```bash
+npm run mark-sent <email|row> [...]   # or --all for every To do lead
+```
+
+This applies the **same state transition the automated sender uses**
+(`Status = Active`, `Date sent = today`, `Follow-up Step = 1`,
+`Next Follow-up = today + 3 days`), so the manual first touch and the automated
+follow-ups stay perfectly in sync.
 
 What the first email does (by design): leads with the real value, embeds the
 locale + vertical demo deep link with UTM tags, and closes with a low-friction

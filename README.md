@@ -105,7 +105,17 @@ Draft (manual first outreach):
 npm run draft
 ```
 
-This renders the first outreach email for every contactable lead (has `Email`, not `Replied?`, not `Do Not Contact?`) so you can copy-paste and send by hand. It reads only — sends nothing, writes nothing. See `OUTREACH_PLAYBOOK.md` for the full process.
+This renders the first outreach email for the leads that still need one (`Status` blank/`To do`, `Follow-up Step` blank/`0`, has `Email`, not `Replied?`/`Do Not Contact?`) so you can copy-paste and send by hand. It reads only — sends nothing, writes nothing. See `OUTREACH_PLAYBOOK.md` for the full process.
+
+Record a manual first send:
+
+```bash
+npm run mark-sent info@clinic.com            # by email
+npm run mark-sent 12 13                       # by row number
+npm run mark-sent --all                       # every To do lead
+```
+
+After you send the first email by hand (from `npm run draft`), this records it with the **same state transition the automated sender uses** — `Status = Active`, `Date sent = today`, `Follow-up Step = 1`, `Next Follow-up = today + 3 days` — so `npm run send` then drives the follow-ups identically. It asks for confirmation (skip with `--yes`).
 
 Add a lead from a URL:
 

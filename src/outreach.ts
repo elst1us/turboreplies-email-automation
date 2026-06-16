@@ -209,6 +209,21 @@ function shouldNeverSend(row: OutreachRow): boolean {
   );
 }
 
+// The canonical "first email was sent" state transition, shared by the automated
+// sender and the manual `mark-sent` command so both leave a row in an identical
+// state and the follow-up phases behave the same way.
+export function firstEmailSentUpdates(row: OutreachRow, now: Date, note: string): RowUpdate {
+  const todayStart = startOfDay(now);
+  const threadToken = getThreadToken(row);
+  return {
+    Status: "Active",
+    "Date sent": formatDate(todayStart),
+    "Next Follow-up": formatDate(addDays(todayStart, 3)),
+    "Follow-up Step": "1",
+    Notes: appendNote(row.cells.Notes, `${note} (${threadToken})`, now)
+  };
+}
+
 function buildCandidate(row: OutreachRow, today: Date, now: Date): SendCandidate | null {
   if (shouldNeverSend(row)) {
     return null;
@@ -224,13 +239,7 @@ function buildCandidate(row: OutreachRow, today: Date, now: Date): SendCandidate
     return {
       label: "First email",
       row,
-      updates: {
-        Status: "Active",
-        "Date sent": formatDate(todayStart),
-        "Next Follow-up": formatDate(addDays(todayStart, 3)),
-        "Follow-up Step": "1",
-        Notes: appendNote(row.cells.Notes, `First email sent via Resend (${threadToken})`, now)
-      },
+      updates: firstEmailSentUpdates(row, now, "First email sent via Resend"),
       email: buildEmail(row, 0)
     };
   }

@@ -76,6 +76,7 @@ RESEND_API_KEY=
 OUTREACH_FROM_EMAIL=hello@turboreplies.com
 OUTREACH_FROM_NAME=Federico | TurboReplies
 OUTREACH_REPLY_TO=hello@turboreplies.com
+OUTREACH_DEMO_URL=https://www.turboreplies.com/en
 CHECK_REPLIES=false
 ALLOW_SEND_IF_IMAP_FAILS=false
 IMAP_HOST=mail.privateemail.com
@@ -93,6 +94,20 @@ GOOGLE_PRIVATE_KEY=
 ```
 
 `IMAP_*` values are required only when `CHECK_REPLIES=true`.
+
+`OUTREACH_DEMO_URL` is the base of the interactive demo link embedded in every email. It defaults to `https://www.turboreplies.com/en`. The tool rewrites the locale segment to match each row's `Language` (supported: `en`, `it`, `fr`, `de`, `es`; anything else falls back to `en`), appends the `vertical` deep-link param plus UTM tags, and adds the `#interactive-demos` anchor. Email body copy is written in Italian for Italian rows and English for everything else; non-English/Italian recipients still get a demo page localized to their language.
+
+## Verticals (optional `Vertical` column)
+
+Add an optional `Vertical` column to tailor the copy and the demo deep link per row. It is read by header name when present, is never required, and is never written back, so existing sheets keep working unchanged.
+
+Recognized values (case-insensitive, matched loosely):
+
+- `clinic` / `dental` / `medical` -> medical & dental copy, demo `vertical=clinic`
+- `real-estate` / `immobiliare` / `agenzia` -> real estate copy, demo `vertical=real-estate`
+- `hotel` / `hospitality` / `hostel` / blank -> hospitality copy, demo `vertical=hotel`
+
+The demo link slug and locale always stay in sync with the website's accepted values, so the page opens on the matching workflow and the contact form preselects the right business type.
 
 ## Commands
 

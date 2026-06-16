@@ -18,13 +18,18 @@ export const SHEET_COLUMNS = [
   "Notes"
 ] as const;
 
+// Optional columns are read by header name when present but are never required
+// and never written back, so existing sheets keep working untouched.
+export const OPTIONAL_SHEET_COLUMNS = ["Vertical"] as const;
+
 export type SheetColumn = (typeof SHEET_COLUMNS)[number];
+export type OptionalSheetColumn = (typeof OPTIONAL_SHEET_COLUMNS)[number];
 export type SheetCellValue = string | number | boolean | "";
 export type OutreachMode = "dry-run" | "send";
 
 export interface OutreachRow {
   rowNumber: number;
-  cells: Record<SheetColumn, SheetCellValue>;
+  cells: Record<SheetColumn | OptionalSheetColumn, SheetCellValue>;
 }
 
 export interface GoogleSheetsConfig {

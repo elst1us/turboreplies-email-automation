@@ -1,6 +1,8 @@
 import { google, sheets_v4 } from "googleapis";
 import {
   GoogleSheetsConfig,
+  OPTIONAL_SHEET_COLUMNS,
+  OptionalSheetColumn,
   OutreachRow,
   RowUpdate,
   SHEET_COLUMNS,
@@ -8,7 +10,9 @@ import {
   SheetColumn
 } from "./types";
 
-const LAST_COLUMN_LETTER = "Q";
+// Read past the required range so optional trailing columns (e.g. Vertical) are
+// captured. Columns are matched by header name below, so position does not matter.
+const LAST_COLUMN_LETTER = "Z";
 const HEADER_ALIASES: Partial<Record<SheetColumn, string[]>> = {
   Property: ["Property/Business"]
 };
@@ -153,16 +157,29 @@ export class GoogleSheetsClient {
       throw new Error(`Missing expected sheet columns: ${missingHeaders.join(", ")}`);
     }
 
+    const optionalHeaderIndexes = new Map<OptionalSheetColumn, number>();
+    for (const header of OPTIONAL_SHEET_COLUMNS) {
+      const matchedIndex = headers.indexOf(header);
+      if (matchedIndex >= 0) {
+        optionalHeaderIndexes.set(header, matchedIndex);
+      }
+    }
+
     return values
       .slice(1)
       .map((rawRow, rowIndex) => {
-        const cells = {} as Record<SheetColumn, SheetCellValue>;
+        const cells = {} as Record<SheetColumn | OptionalSheetColumn, SheetCellValue>;
         for (const header of SHEET_COLUMNS) {
           const headerIndex = headerIndexes.get(header);
           if (headerIndex === undefined) {
             throw new Error(`Header mapping missing for column: ${header}`);
           }
           const value = rawRow[headerIndex];
+          cells[header] = value === undefined || value === null ? "" : (value as SheetCellValue);
+        }
+        for (const header of OPTIONAL_SHEET_COLUMNS) {
+          const headerIndex = optionalHeaderIndexes.get(header);
+          const value = headerIndex === undefined ? undefined : rawRow[headerIndex];
           cells[header] = value === undefined || value === null ? "" : (value as SheetCellValue);
         }
 

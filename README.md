@@ -55,6 +55,7 @@ OUTREACH_FROM_EMAIL=hello@turboreplies.com
 OUTREACH_FROM_NAME=Federico | TurboReplies
 OUTREACH_REPLY_TO=hello@turboreplies.com
 OUTREACH_DEMO_URL=https://www.turboreplies.com/en
+ANTHROPIC_API_KEY=
 CHECK_REPLIES=false
 ALLOW_SEND_IF_IMAP_FAILS=false
 IMAP_HOST=mail.privateemail.com
@@ -64,7 +65,7 @@ IMAP_USER=hello@turboreplies.com
 IMAP_PASS=
 ```
 
-`OUTREACH_CSV_PATH` defaults to `leads.csv` (resolved from the repo root). `IMAP_*` values are required only when `CHECK_REPLIES=true`.
+`OUTREACH_CSV_PATH` defaults to `leads.csv` (resolved from the repo root). `IMAP_*` values are required only when `CHECK_REPLIES=true`. `ANTHROPIC_API_KEY` is required only for `npm run add` (uses Claude to draft the `Hook`); `ANTHROPIC_MODEL` optionally overrides the model (default `claude-opus-4-8`).
 
 `OUTREACH_DEMO_URL` is the base of the interactive demo link embedded in every email. It defaults to `https://www.turboreplies.com/en`. The tool rewrites the locale segment to match each row's `Language` (supported: `en`, `it`, `fr`, `de`, `es`; anything else falls back to `en`), appends the `vertical` deep-link param plus UTM tags, and adds the `#interactive-demos` anchor. Email body copy is written in Italian for Italian rows and English for everything else; non-English/Italian recipients still get a demo page localized to their language.
 
@@ -105,6 +106,14 @@ npm run draft
 ```
 
 This renders the first outreach email for every contactable lead (has `Email`, not `Replied?`, not `Do Not Contact?`) so you can copy-paste and send by hand. It reads only — sends nothing, writes nothing. See `OUTREACH_PLAYBOOK.md` for the full process.
+
+Add a lead from a URL:
+
+```bash
+npm run add https://example-clinic.it
+```
+
+Fetches the site, uses Claude to infer the business name, vertical, language, and a personal `Hook`, extracts the contact email/phone/Instagram, shows a preview of the first email, and appends a ready-to-send `To do` row to `leads.csv` after you confirm. Requires `ANTHROPIC_API_KEY`. Verify the email it picked before sending.
 
 ## Workflow rules implemented
 

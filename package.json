@@ -7,9 +7,11 @@
     "build": "node node_modules/typescript/bin/tsc -p tsconfig.json",
     "dry-run": "node node_modules/tsx/dist/cli.cjs src/index.ts --dry-run",
     "send": "node node_modules/tsx/dist/cli.cjs src/index.ts --send",
-    "draft": "node node_modules/tsx/dist/cli.cjs src/draft.ts"
+    "draft": "node node_modules/tsx/dist/cli.cjs src/draft.ts",
+    "add": "node node_modules/tsx/dist/cli.cjs src/add.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.69.0",
     "dotenv": "^16.6.1",
     "imapflow": "^1.1.1",
     "resend": "^4.7.0"

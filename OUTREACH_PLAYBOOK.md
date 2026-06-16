@@ -83,17 +83,18 @@ What's automated vs. manual today, and how to close the gap:
 
 | Stage | Today | To fully automate |
 | --- | --- | --- |
-| Lead sourcing | Manual research | Google Maps / IG scrape → rows (name, site, IG, phone) |
-| Email + vertical + language | Manual cell entry | Infer vertical from category; detect language from site |
-| `Hook` line | Hand-written | LLM drafts a per-lead hook from the site/IG, human approves |
+| Lead sourcing | One URL at a time (`npm run add <url>`) | Batch: feed a list of URLs / a Maps scrape |
+| Email + vertical + language | **Auto** (`npm run add` infers, human approves) | — |
+| `Hook` line | **Auto** (Claude drafts from the site, human approves) | — |
 | First email | **Manual** (`npm run draft`) | Flip to `npm run send` once warm-up + deliverability are proven |
 | Follow-ups | **Automated** | — |
 | Reply detection | **Automated** (IMAP) | Add reply triage / suggested response |
 | Scheduling | Manual run | Cron `npm run send` daily |
 
-Recommended next build: a lead-intake script (scrape → enrich → LLM-drafted
-`Hook` → write rows) so the only human step becomes approving hooks. Until cold
-deliverability from the sending domain is proven, keep the **first** email manual.
+`npm run add <url>` already does the scrape → enrich → Claude-drafted `Hook` →
+append step (see Command list above); the only human step is approving the lead.
+Next up: batch it over a list of URLs. Until cold deliverability from the sending
+domain is proven, keep the **first** email manual.
 
 ## Before scaling
 

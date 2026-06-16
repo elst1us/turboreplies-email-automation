@@ -207,4 +207,27 @@ export class CsvStore {
 
     writeFileSync(this.filePath, serializeCsv([headers, ...normalized]), "utf8");
   }
+
+  async appendRow(values: Partial<Record<SheetColumn | OptionalSheetColumn, SheetCellValue>>): Promise<void> {
+    const { headers } = this.read();
+    const headerIndexes = buildHeaderIndexes(headers);
+
+    const record = new Array<string>(headers.length).fill("");
+    for (const [column, value] of Object.entries(values) as Array<[SheetColumn | OptionalSheetColumn, SheetCellValue]>) {
+      let index = headerIndexes.get(column as SheetColumn);
+      if (index === undefined) {
+        const optionalIndex = headers.indexOf(column);
+        index = optionalIndex >= 0 ? optionalIndex : undefined;
+      }
+      if (index === undefined) {
+        continue;
+      }
+      record[index] = cellToString(value);
+    }
+
+    const existing = readFileSync(this.filePath, "utf8");
+    const separator = existing.length > 0 && !existing.endsWith("\n") ? "\n" : "";
+    const line = record.map(serializeField).join(",");
+    writeFileSync(this.filePath, `${existing}${separator}${line}\n`, "utf8");
+  }
 }

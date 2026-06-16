@@ -144,7 +144,7 @@ function valueParagraph(vertical: Vertical, italian: boolean, multipleRecipients
 
   if (italian) {
     if (vertical === "clinic") {
-      return `Aiutiamo studi medici e dentistici a non perdere pazienti: un assistente AI risponde subito alle domande che arrivano da WhatsApp, Instagram e Facebook — anche fuori orario e in più lingue — qualifica la richiesta e indirizza il paziente pronto al vostro sistema di prenotazione. Non sostituisce il gestionale né il personale: si affianca a ciò che già usate e recupera i messaggi che oggi restano senza risposta. Nulla viene confermato senza di ${you}.`;
+      return `Aiutiamo studi medici e dentistici a non perdere pazienti. Un assistente AI risponde in pochi secondi — 24 ore su 24 e nella lingua del paziente — ai messaggi su WhatsApp, Instagram e Facebook: risponde alle domande ricorrenti (orari di apertura, parcheggio, prezzi, quali trattamenti offrite), propone gli orari disponibili per l'appuntamento e raccoglie i dati che servono alla reception per confermare. Si affianca al vostro sistema di prenotazione, non lo sostituisce, e nulla viene confermato senza di ${you}.`;
     }
     if (vertical === "realEstate") {
       return `Aiutiamo le agenzie immobiliari a non perdere contatti: un assistente AI risponde all'istante alle richieste sugli annunci — chi risponde per primo prende il cliente — raccoglie immobile di interesse, budget e tempistiche, e passa il lead già qualificato all'agente. Non sostituisce il vostro lavoro: nulla viene deciso senza di ${you}.`;
@@ -153,7 +153,7 @@ function valueParagraph(vertical: Vertical, italian: boolean, multipleRecipients
   }
 
   if (vertical === "clinic") {
-    return `We help medical and dental practices stop losing patients: an AI assistant instantly answers the questions that arrive via WhatsApp, Instagram and Facebook — even after hours and in multiple languages — qualifies the request and points the ready patient to your existing booking system. It doesn't replace your practice software or your staff; it sits alongside what you already use and recovers the messages that go unanswered today. Nothing is confirmed without you.`;
+    return `We help medical and dental practices stop losing patients. An AI assistant replies in seconds — 24/7 and in the patient's language — to messages on WhatsApp, Instagram and Facebook: it answers the routine questions (opening hours, parking, prices, which treatments you offer), proposes available appointment times, and collects what your reception needs to confirm the booking. It works alongside your existing booking system, not instead of it — and nothing is confirmed without you.`;
   }
   if (vertical === "realEstate") {
     return `We help agencies stop losing leads: an AI assistant replies instantly to listing enquiries — the first to respond wins the client — captures the property of interest, budget and timing, and hands the qualified lead to your agent. It never replaces your work; nothing is decided without you.`;
@@ -165,7 +165,7 @@ function valueParagraph(vertical: Vertical, italian: boolean, multipleRecipients
 function shortBenefit(vertical: Vertical, italian: boolean, multipleRecipients: boolean): string {
   if (italian) {
     if (vertical === "clinic") {
-      return "risponde subito ai messaggi su WhatsApp e Instagram, anche in più lingue, e indirizza i pazienti pronti al vostro sistema di prenotazione";
+      return "risponde a domande su orari, prezzi e trattamenti, propone gli orari per l'appuntamento e raccoglie i dati per la conferma — 24 ore su 24, nella lingua del paziente";
     }
     if (vertical === "realEstate") {
       return "risponde all'istante ai contatti sugli annunci e li passa all'agente già qualificati";
@@ -174,7 +174,7 @@ function shortBenefit(vertical: Vertical, italian: boolean, multipleRecipients: 
   }
 
   if (vertical === "clinic") {
-    return "answers WhatsApp and Instagram messages instantly, in multiple languages, and routes ready patients to your existing booking system";
+    return "answers questions like opening hours, prices and treatments, proposes appointment times, and collects what reception needs to confirm — 24/7, in the patient's language";
   }
   if (vertical === "realEstate") {
     return "answers listing enquiries instantly and hands them to your agent already qualified";

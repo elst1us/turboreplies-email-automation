@@ -6,7 +6,8 @@
   "scripts": {
     "build": "node node_modules/typescript/bin/tsc -p tsconfig.json",
     "dry-run": "node node_modules/tsx/dist/cli.cjs src/index.ts --dry-run",
-    "send": "node node_modules/tsx/dist/cli.cjs src/index.ts --send"
+    "send": "node node_modules/tsx/dist/cli.cjs src/index.ts --send",
+    "draft": "node node_modules/tsx/dist/cli.cjs src/draft.ts"
   },
   "dependencies": {
     "dotenv": "^16.6.1",

@@ -1,21 +1,22 @@
 import { EmailContent, OutreachRow } from "./types";
+// Vendored contract shared with the turbo-replies site repo (see the file's
+// _comment). It is the single source of truth for the demo deep-link slugs and
+// locales, so the email links can never drift from the website's verticals.
+import contract from "./shared/verticals.contract.json";
 
 // Verticals mirror the website's demo deep-link slugs so a click lands on the
 // matching workflow and preselects the right business type on the contact form.
-// See lib/demo-vertical.ts in the turbo-replies site repo.
 type Vertical = "clinic" | "realEstate" | "hotel";
 
-const DEMO_SLUG: Record<Vertical, string> = {
-  clinic: "clinic",
-  realEstate: "real-estate",
-  hotel: "hotel"
-};
+const DEMO_SLUG = Object.fromEntries(
+  contract.verticals.map((entry) => [entry.key, entry.slug])
+) as Record<Vertical, string>;
 
 // Base may include a locale segment; it is replaced per-recipient via Language.
-// Locales mirror the website's supported set (lib/i18n/config.ts).
 const DEFAULT_DEMO_BASE = "https://www.turboreplies.com/en";
-const DEMO_LOCALES = ["en", "it", "fr", "de", "es"] as const;
-type DemoLocale = (typeof DEMO_LOCALES)[number];
+const DEMO_LOCALES: readonly string[] = contract.locales;
+// Keep this union in sync with verticals.contract.json "locales".
+type DemoLocale = "en" | "it" | "fr" | "de" | "es";
 
 function ownerFirstNames(owner: string): string[] {
   const normalized = owner
@@ -142,7 +143,7 @@ function valueParagraph(vertical: Vertical, italian: boolean, multipleRecipients
 
   if (italian) {
     if (vertical === "clinic") {
-      return `Aiutiamo studi medici e dentistici a non perdere pazienti: un assistente AI risponde subito alle richieste di appuntamento dal sito, da WhatsApp, Instagram e Facebook — anche fuori orario — chiede il motivo della visita e i recapiti, e passa tutto alla reception già in ordine. Non sostituisce il personale: nessun appuntamento viene confermato senza di ${you}.`;
+      return `Aiutiamo studi medici e dentistici a non perdere pazienti: un assistente AI risponde subito alle domande che arrivano da WhatsApp, Instagram e Facebook — anche fuori orario e in più lingue — qualifica la richiesta e indirizza il paziente pronto al vostro sistema di prenotazione. Non sostituisce il gestionale né il personale: si affianca a ciò che già usate e recupera i messaggi che oggi restano senza risposta. Nulla viene confermato senza di ${you}.`;
     }
     if (vertical === "realEstate") {
       return `Aiutiamo le agenzie immobiliari a non perdere contatti: un assistente AI risponde all'istante alle richieste sugli annunci — chi risponde per primo prende il cliente — raccoglie immobile di interesse, budget e tempistiche, e passa il lead già qualificato all'agente. Non sostituisce il vostro lavoro: nulla viene deciso senza di ${you}.`;
@@ -151,7 +152,7 @@ function valueParagraph(vertical: Vertical, italian: boolean, multipleRecipients
   }
 
   if (vertical === "clinic") {
-    return `We help medical and dental practices stop losing patients: an AI assistant instantly answers appointment requests from your website, WhatsApp, Instagram and Facebook — even after hours — asks the reason for the visit and contact details, and hands everything to your front desk ready to act on. It never replaces your staff; nothing is booked without you.`;
+    return `We help medical and dental practices stop losing patients: an AI assistant instantly answers the questions that arrive via WhatsApp, Instagram and Facebook — even after hours and in multiple languages — qualifies the request and points the ready patient to your existing booking system. It doesn't replace your practice software or your staff; it sits alongside what you already use and recovers the messages that go unanswered today. Nothing is confirmed without you.`;
   }
   if (vertical === "realEstate") {
     return `We help agencies stop losing leads: an AI assistant replies instantly to listing enquiries — the first to respond wins the client — captures the property of interest, budget and timing, and hands the qualified lead to your agent. It never replaces your work; nothing is decided without you.`;
@@ -163,7 +164,7 @@ function valueParagraph(vertical: Vertical, italian: boolean, multipleRecipients
 function shortBenefit(vertical: Vertical, italian: boolean, multipleRecipients: boolean): string {
   if (italian) {
     if (vertical === "clinic") {
-      return "risponde subito alle richieste di appuntamento, anche fuori orario, e le passa alla reception già qualificate";
+      return "risponde subito ai messaggi su WhatsApp e Instagram, anche in più lingue, e indirizza i pazienti pronti al vostro sistema di prenotazione";
     }
     if (vertical === "realEstate") {
       return "risponde all'istante ai contatti sugli annunci e li passa all'agente già qualificati";
@@ -172,7 +173,7 @@ function shortBenefit(vertical: Vertical, italian: boolean, multipleRecipients: 
   }
 
   if (vertical === "clinic") {
-    return "answers appointment requests instantly, even after hours, and hands them to your front desk already qualified";
+    return "answers WhatsApp and Instagram messages instantly, in multiple languages, and routes ready patients to your existing booking system";
   }
   if (vertical === "realEstate") {
     return "answers listing enquiries instantly and hands them to your agent already qualified";
@@ -193,11 +194,11 @@ function audienceNoun(vertical: Vertical, italian: boolean): string {
 
 function firstSubject(vertical: Vertical, italian: boolean, property: string): string {
   if (italian) {
-    if (vertical === "clinic") return `Meno richieste di appuntamento perse per ${property}`;
+    if (vertical === "clinic") return `Nessun messaggio di paziente perso per ${property}`;
     if (vertical === "realEstate") return `Rispondere per primi ai contatti di ${property}`;
     return `Nessuna richiesta persa per ${property}`;
   }
-  if (vertical === "clinic") return `Stop missing appointment requests at ${property}`;
+  if (vertical === "clinic") return `Never miss a patient message at ${property}`;
   if (vertical === "realEstate") return `Be first to reply to leads at ${property}`;
   return `Never miss an enquiry at ${property}`;
 }

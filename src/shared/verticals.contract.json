@@ -1,0 +1,11 @@
+{
+  "_comment": "VENDORED CONTRACT — keep byte-identical in both repos: turbo-replies (lib/shared/verticals.contract.json) and turboreplies-email-automation (src/shared/verticals.contract.json). It is the single source of truth for the demo deep-link verticals and locales shared by the website demo and the outreach emails. If you change a vertical slug or a locale here, copy this file to the other repo. The website locale list must also stay in sync with lib/i18n/config.ts.",
+  "verticals": [
+    { "key": "clinic", "slug": "clinic" },
+    { "key": "realEstate", "slug": "real-estate" },
+    { "key": "hotel", "slug": "hotel" }
+  ],
+  "locales": ["en", "it", "fr", "de", "es"],
+  "defaultLocale": "en",
+  "demoAnchor": "interactive-demos"
+}

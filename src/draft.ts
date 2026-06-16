@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { loadConfig } from "./outreach";
-import { GoogleSheetsClient } from "./googleSheets";
+import { CsvStore } from "./csvStore";
 import { buildEmail } from "./templates";
 
 // Renders the first outreach email for every contactable lead in the sheet so
@@ -15,8 +15,8 @@ function isTrue(value: unknown): boolean {
 
 async function main(): Promise<void> {
   const config = loadConfig("dry-run");
-  const client = new GoogleSheetsClient(config.googleSheets);
-  const rows = await client.readRows();
+  const store = new CsvStore(config.csvPath);
+  const rows = await store.readRows();
 
   let shown = 0;
   for (const row of rows) {

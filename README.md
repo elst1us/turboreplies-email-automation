@@ -1,14 +1,13 @@
 # TurboReplies Email Automation
 
-Local Node.js + TypeScript CLI that reads your existing Google Sheet, optionally checks IMAP replies, sends outreach emails through Resend, and updates the same sheet after successful sends.
+Local Node.js + TypeScript CLI that reads a local CSV of leads, optionally checks IMAP replies, sends outreach emails through Resend, and updates the same CSV after successful sends. No Google account or cloud setup required.
 
 ## What it does
 
-- Reads the existing Google Sheet directly through the Google Sheets API.
-- Never recreates the sheet, columns, dropdowns, checkboxes, or formatting.
+- Reads leads from a local CSV file (`leads.csv` by default).
 - Optionally checks IMAP replies before sending follow-ups.
 - Sends first emails and follow-ups through Resend.
-- Updates only existing cells in the current sheet.
+- Writes status, dates, follow-up step, and notes back to the CSV after each successful send.
 - Supports `dry-run` mode that sends nothing and writes nothing.
 
 ## Files
@@ -16,12 +15,15 @@ Local Node.js + TypeScript CLI that reads your existing Google Sheet, optionally
 - `package.json`
 - `tsconfig.json`
 - `.env.example`
+- `leads.csv` — your lead data (git-ignored; contains contact PII)
+- `leads.example.csv` — the column schema with sample rows
 - `src/index.ts`
-- `src/googleSheets.ts`
+- `src/csvStore.ts`
 - `src/templates.ts`
 - `src/resendClient.ts`
 - `src/imapReplies.ts`
 - `src/outreach.ts`
+- `src/draft.ts`
 - `src/types.ts`
 
 ## Setup
@@ -32,46 +34,22 @@ Local Node.js + TypeScript CLI that reads your existing Google Sheet, optionally
 npm install
 ```
 
-2. Copy `.env.example` to `.env` and fill in your values.
+2. Copy `.env.example` to `.env` and fill in your values (Resend key, sender, IMAP if used).
 
-3. Create a Google Cloud project for the sheet access.
+3. Copy `leads.example.csv` to `leads.csv` and add your leads (or edit `leads.csv` directly).
 
-## Google Sheets service account setup
+## The CSV
 
-1. Go to [Google Cloud Console](https://console.cloud.google.com/).
-2. Create or select a project.
-3. Enable the Google Sheets API for that project.
-4. Go to `APIs & Services` -> `Credentials`.
-5. Create a `Service account`.
-6. Create a JSON key for that service account.
-7. Download the JSON key file.
-8. Put that JSON file at the repo root as `google-service-account.json`.
-   This file is already ignored by git.
-9. Open your existing Google Sheet.
-10. Share the sheet with the service account email from the JSON file's `client_email`.
-    The service account needs edit access so the tool can update existing cells.
+`leads.csv` lives at the repo root and is git-ignored because it holds contact PII. `leads.example.csv` is tracked and documents the exact columns. The header row must contain these columns (order is flexible; `Property/Business` is also accepted for `Property`):
 
-Preferred local setup:
+`Property`, `Location`, `Village`, `Language`, `Owner`, `Email`, `Phone/WhatsApp`, `Instagram`, `Hook`, `Primary Channel`, `Status`, `Date sent`, `Next Follow-up`, `Follow-up Step`, `Replied?`, `Do Not Contact?`, `Notes`, and the optional `Vertical`.
 
-```env
-GOOGLE_SERVICE_ACCOUNT_JSON_PATH=./google-service-account.json
-```
-
-Optional fallback:
-
-If you do not want to keep the JSON file in the repo root, you can still copy the service account email into `GOOGLE_SERVICE_ACCOUNT_EMAIL` and the private key into `GOOGLE_PRIVATE_KEY`.
-Put the private key on one line in `.env` and keep the escaped newlines, for example:
-
-```env
-GOOGLE_PRIVATE_KEY=-----BEGIN PRIVATE KEY-----\nABC...\n-----END PRIVATE KEY-----\n
-```
+Edit it in any spreadsheet app or text editor — just don't hand-edit it *during* a `send` run, since the tool rewrites the file on each update. Fields with commas or newlines must be quoted (standard CSV); most editors do this automatically.
 
 ## Required environment variables
 
 ```env
-GOOGLE_SHEET_ID=
-GOOGLE_SHEET_NAME=
-GOOGLE_SERVICE_ACCOUNT_JSON_PATH=./google-service-account.json
+OUTREACH_CSV_PATH=leads.csv
 RESEND_API_KEY=
 OUTREACH_FROM_EMAIL=hello@turboreplies.com
 OUTREACH_FROM_NAME=Federico | TurboReplies
@@ -86,20 +64,13 @@ IMAP_USER=hello@turboreplies.com
 IMAP_PASS=
 ```
 
-Fallback auth variables if you are not using the JSON file:
-
-```env
-GOOGLE_SERVICE_ACCOUNT_EMAIL=
-GOOGLE_PRIVATE_KEY=
-```
-
-`IMAP_*` values are required only when `CHECK_REPLIES=true`.
+`OUTREACH_CSV_PATH` defaults to `leads.csv` (resolved from the repo root). `IMAP_*` values are required only when `CHECK_REPLIES=true`.
 
 `OUTREACH_DEMO_URL` is the base of the interactive demo link embedded in every email. It defaults to `https://www.turboreplies.com/en`. The tool rewrites the locale segment to match each row's `Language` (supported: `en`, `it`, `fr`, `de`, `es`; anything else falls back to `en`), appends the `vertical` deep-link param plus UTM tags, and adds the `#interactive-demos` anchor. Email body copy is written in Italian for Italian rows and English for everything else; non-English/Italian recipients still get a demo page localized to their language.
 
 ## Verticals (optional `Vertical` column)
 
-Add an optional `Vertical` column to tailor the copy and the demo deep link per row. It is read by header name when present, is never required, and is never written back, so existing sheets keep working unchanged.
+Add an optional `Vertical` column to tailor the copy and the demo deep link per row. It is read by header name when present, is never required, and is never written back, so a CSV without it keeps working unchanged (blank defaults to `hotel`).
 
 Recognized values (case-insensitive, matched loosely):
 
@@ -117,7 +88,7 @@ Dry run:
 npm run dry-run
 ```
 
-This prints each eligible email preview and the row changes that would happen. It does not send emails and does not update the sheet.
+This prints each eligible email preview and the row changes that would happen. It does not send emails and does not update the CSV.
 
 Send:
 
@@ -125,7 +96,15 @@ Send:
 npm run send
 ```
 
-This sends through Resend and updates the sheet only after each successful send. If a send fails, that row is not marked as sent.
+This sends through Resend and updates the CSV only after each successful send. If a send fails, that row is not marked as sent.
+
+Draft (manual first outreach):
+
+```bash
+npm run draft
+```
+
+This renders the first outreach email for every contactable lead (has `Email`, not `Replied?`, not `Do Not Contact?`) so you can copy-paste and send by hand. It reads only — sends nothing, writes nothing. See `OUTREACH_PLAYBOOK.md` for the full process.
 
 ## Workflow rules implemented
 
@@ -164,7 +143,7 @@ For rows where:
 - `Status = Active`
 - `Replied?` is not `TRUE`
 
-it searches the inbox for messages from the row email address and only counts messages dated after `Date sent`.
+it searches the IMAP inbox for messages from the row email address and only counts messages dated after `Date sent`.
 For newly sent emails, it also embeds a stable thread token in the subject so replies can still be detected even when the sender responds from a different address.
 
 If a reply is found:

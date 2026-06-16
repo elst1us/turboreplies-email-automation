@@ -32,13 +32,6 @@ export interface OutreachRow {
   cells: Record<SheetColumn | OptionalSheetColumn, SheetCellValue>;
 }
 
-export interface GoogleSheetsConfig {
-  sheetId: string;
-  sheetName: string;
-  serviceAccountEmail: string;
-  privateKey: string;
-}
-
 export interface ResendConfig {
   apiKey: string;
   fromEmail: string;
@@ -58,7 +51,7 @@ export interface AppConfig {
   mode: OutreachMode;
   checkReplies: boolean;
   allowSendIfImapFails: boolean;
-  googleSheets: GoogleSheetsConfig;
+  csvPath: string;
   resend: ResendConfig;
   imap?: ImapConfig;
 }

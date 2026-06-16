@@ -1,12 +1,11 @@
-import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
-import { GoogleSheetsClient } from "./googleSheets";
+import { CsvStore } from "./csvStore";
 import { ImapReplyDetector } from "./imapReplies";
 import { ResendClient } from "./resendClient";
 import { buildEmail } from "./templates";
 import { AppConfig, OutreachRow, RowUpdate, SendCandidate, SheetCellValue, SHEET_COLUMNS } from "./types";
 
-const DEFAULT_SERVICE_ACCOUNT_JSON_PATH = "google-service-account.json";
+const DEFAULT_CSV_PATH = "leads.csv";
 
 function requiredEnv(name: string): string {
   const value = process.env[name]?.trim();
@@ -36,51 +35,6 @@ function numberEnv(name: string, defaultValue: number): number {
   }
 
   return parsed;
-}
-
-function optionalEnv(name: string): string | undefined {
-  const value = process.env[name]?.trim();
-  return value ? value : undefined;
-}
-
-function loadGoogleCredentials(): { serviceAccountEmail: string; privateKey: string } {
-  const configuredJsonPath = optionalEnv("GOOGLE_SERVICE_ACCOUNT_JSON_PATH");
-  const defaultJsonPath = path.resolve(process.cwd(), DEFAULT_SERVICE_ACCOUNT_JSON_PATH);
-  const serviceAccountJsonPath = configuredJsonPath
-    ? path.resolve(process.cwd(), configuredJsonPath)
-    : existsSync(defaultJsonPath)
-      ? defaultJsonPath
-      : undefined;
-
-  if (serviceAccountJsonPath) {
-    let parsed: unknown;
-
-    try {
-      parsed = JSON.parse(readFileSync(serviceAccountJsonPath, "utf8"));
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      throw new Error(`Unable to read Google service account JSON at ${serviceAccountJsonPath}: ${message}`);
-    }
-
-    const clientEmail =
-      typeof parsed === "object" && parsed !== null && "client_email" in parsed ? parsed.client_email : undefined;
-    const privateKey =
-      typeof parsed === "object" && parsed !== null && "private_key" in parsed ? parsed.private_key : undefined;
-
-    if (typeof clientEmail !== "string" || typeof privateKey !== "string") {
-      throw new Error(`Google service account JSON at ${serviceAccountJsonPath} is missing client_email or private_key.`);
-    }
-
-    return {
-      serviceAccountEmail: clientEmail,
-      privateKey
-    };
-  }
-
-  return {
-    serviceAccountEmail: requiredEnv("GOOGLE_SERVICE_ACCOUNT_EMAIL"),
-    privateKey: requiredEnv("GOOGLE_PRIVATE_KEY").replace(/\\n/g, "\n")
-  };
 }
 
 function startOfDay(date: Date): Date {
@@ -340,18 +294,13 @@ export function loadConfig(mode: "dry-run" | "send"): AppConfig {
   const fromName = process.env.OUTREACH_FROM_NAME?.trim() || "Federico | TurboReplies";
   const replyTo = process.env.OUTREACH_REPLY_TO?.trim() || fromEmail;
   const resendApiKey = mode === "send" ? requiredEnv("RESEND_API_KEY") : process.env.RESEND_API_KEY?.trim() || "dry-run";
-  const googleCredentials = loadGoogleCredentials();
+  const csvPath = path.resolve(process.cwd(), process.env.OUTREACH_CSV_PATH?.trim() || DEFAULT_CSV_PATH);
 
   return {
     mode,
     checkReplies,
     allowSendIfImapFails: booleanEnv("ALLOW_SEND_IF_IMAP_FAILS", false),
-    googleSheets: {
-      sheetId: requiredEnv("GOOGLE_SHEET_ID"),
-      sheetName: requiredEnv("GOOGLE_SHEET_NAME"),
-      serviceAccountEmail: googleCredentials.serviceAccountEmail,
-      privateKey: googleCredentials.privateKey
-    },
+    csvPath,
     resend: {
       apiKey: resendApiKey,
       fromEmail,
@@ -371,13 +320,13 @@ export function loadConfig(mode: "dry-run" | "send"): AppConfig {
 }
 
 export async function runOutreach(config: AppConfig): Promise<void> {
-  const sheetsClient = new GoogleSheetsClient(config.googleSheets);
+  const store = new CsvStore(config.csvPath);
   const resendClient = config.mode === "send" ? new ResendClient(config.resend) : null;
-  const rows = await sheetsClient.readRows();
+  const rows = await store.readRows();
   const now = new Date();
   const today = startOfDay(now);
 
-  console.log(`Loaded ${rows.length} rows from "${config.googleSheets.sheetName}".`);
+  console.log(`Loaded ${rows.length} rows from ${config.csvPath}.`);
 
   if (config.checkReplies && config.imap) {
     const detector = new ImapReplyDetector(config.imap);
@@ -412,7 +361,7 @@ export async function runOutreach(config: AppConfig): Promise<void> {
         };
 
         if (config.mode === "send") {
-          await sheetsClient.updateRow(row.rowNumber, updates);
+          await store.updateRow(row.rowNumber, updates);
           console.log(`Updated ${rowLabel(row)} after reply detection.`);
         } else {
           console.log(`[dry-run] Would update ${rowLabel(row)} after reply detection.`);
@@ -465,7 +414,7 @@ export async function runOutreach(config: AppConfig): Promise<void> {
       }
 
       const messageId = await resendClient.sendEmail(email, candidate.email);
-      await sheetsClient.updateRow(candidate.row.rowNumber, candidate.updates);
+      await store.updateRow(candidate.row.rowNumber, candidate.updates);
       applyLocalUpdates(candidate.row, candidate.updates);
       console.log(`Sent ${candidate.label.toLowerCase()} to ${email} (${messageId}).`);
     } catch (error) {

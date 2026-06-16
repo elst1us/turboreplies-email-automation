@@ -31,9 +31,10 @@ reads as redundant. Pitch the gap booking software leaves: **conversational,
 multilingual pre-booking messages on WhatsApp/Instagram**, qualified and routed
 to their existing booking system. The clinic copy is written this way.
 
-## 2. Prep the sheet (per lead)
+## 2. Prep the CSV (per lead)
 
-Fill these columns before drafting:
+Fill these columns in `leads.csv` before drafting (see `leads.example.csv` for
+the schema):
 
 - `Property`, `Village`/`Location` — business name + place.
 - `Owner` — first name(s); enables "Buongiorno Marco" / "Vi scrivo" for pairs.
@@ -56,9 +57,9 @@ Prints subject + body for every contactable lead (has `Email`, not `Replied?`,
 not `Do Not Contact?`). Copy-paste into your mailbox and send. Sends nothing,
 writes nothing.
 
-After sending a row by hand, set in the sheet so the automation takes over the
-follow-ups: `Status = Active`, `Date sent = today`, `Follow-up Step = 1`,
-`Next Follow-up = today + 3 days`.
+After sending a row by hand, set these in `leads.csv` so the automation takes
+over the follow-ups: `Status = Active`, `Date sent = today`,
+`Follow-up Step = 1`, `Next Follow-up = today + 3 days`.
 
 What the first email does (by design): leads with the real value, embeds the
 locale + vertical demo deep link with UTM tags, and closes with a low-friction

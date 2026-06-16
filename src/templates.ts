@@ -41,16 +41,17 @@ function propertyLabel(row: OutreachRow): string {
   const property = String(row.cells.Property || "").trim();
   const village = String(row.cells.Village || "").trim();
   const location = String(row.cells.Location || "").trim();
+  const place = village || location;
 
-  if (property && village) {
-    return `${property} in ${village}`;
+  if (property && place) {
+    // Avoid "Citydent Istanbul in Istanbul" when the name already names the place.
+    if (property.toLowerCase().includes(place.toLowerCase())) {
+      return property;
+    }
+    return `${property} in ${place}`;
   }
 
-  if (property && location) {
-    return `${property} in ${location}`;
-  }
-
-  return property || village || location || "your property";
+  return property || place || "your property";
 }
 
 function optionalHook(row: OutreachRow): string {

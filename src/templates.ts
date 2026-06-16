@@ -144,21 +144,21 @@ function valueParagraph(vertical: Vertical, italian: boolean, multipleRecipients
 
   if (italian) {
     if (vertical === "clinic") {
-      return `Aiutiamo studi medici e dentistici a non perdere pazienti. Un assistente AI risponde in pochi secondi — 24 ore su 24 e nella lingua del paziente — ai messaggi su WhatsApp, Instagram e Facebook: risponde alle domande ricorrenti (orari di apertura, parcheggio, prezzi, quali trattamenti offrite), propone gli orari disponibili per l'appuntamento e raccoglie i dati che servono alla reception per confermare. Si affianca al vostro sistema di prenotazione, non lo sostituisce, e nulla viene confermato senza di ${you}.`;
+      return `Ogni messaggio senza risposta è un paziente che prenota altrove. Un assistente AI risponde in pochi secondi — 24 ore su 24 e nella lingua del paziente — su WhatsApp, Instagram e Facebook: risponde alle domande ricorrenti (orari, parcheggio, prezzi, quali trattamenti offrite), propone gli orari disponibili per l'appuntamento e raccoglie i dati che servono alla reception per confermare. Risultato: più richieste diventano appuntamenti prenotati — anche fuori orario — invece di andare allo studio che ha risposto per primo. Si affianca al vostro sistema di prenotazione, non lo sostituisce, e nulla viene confermato senza di ${you}.`;
     }
     if (vertical === "realEstate") {
-      return `Aiutiamo le agenzie immobiliari a non perdere contatti: un assistente AI risponde all'istante alle richieste sugli annunci — chi risponde per primo prende il cliente — raccoglie immobile di interesse, budget e tempistiche, e passa il lead già qualificato all'agente. Non sostituisce il vostro lavoro: nulla viene deciso senza di ${you}.`;
+      return `Nel settore immobiliare chi risponde per primo di solito prende il cliente — e la provvigione. Un assistente AI risponde alle richieste sugli annunci in pochi secondi, 24 ore su 24 e nella lingua del cliente: risponde alle prime domande (prezzo, metratura, disponibilità, zona), raccoglie budget e tempistiche, propone un orario per la visita e passa all'agente un contatto già qualificato. Risultato: più richieste diventano visite e trattative chiuse — anche fuori orario — invece di raffreddarsi o andare a un concorrente più veloce. Non sostituisce gli agenti e nulla viene deciso senza di ${you}.`;
     }
-    return `Aiutiamo le strutture ricettive a non perdere richieste: un assistente AI risponde subito agli ospiti — giorno e notte e anche in inglese, tedesco e francese — raccoglie date e numero di persone, e ${multipleRecipients ? "vi passa" : "Le passa"} la richiesta già pronta. Non sostituisce il vostro lavoro: nulla viene confermato senza di ${you}.`;
+    return `Ogni richiesta senza risposta è una prenotazione che va a un'altra struttura — o all'OTA. Un assistente AI risponde agli ospiti in pochi secondi — giorno e notte, nella loro lingua — alle domande che decidono una prenotazione (disponibilità, prezzi, check-in e parcheggio, come raggiungervi), raccoglie date e numero di ospiti e passa al vostro team un ospite pronto a confermare. Risultato: più richieste diventano prenotazioni dirette — anche di notte — invece di notti vuote. Non sostituisce il personale e nulla viene confermato senza di ${you}.`;
   }
 
   if (vertical === "clinic") {
-    return `We help medical and dental practices stop losing patients. An AI assistant replies in seconds — 24/7 and in the patient's language — to messages on WhatsApp, Instagram and Facebook: it answers the routine questions (opening hours, parking, prices, which treatments you offer), proposes available appointment times, and collects what your reception needs to confirm the booking. It works alongside your existing booking system, not instead of it — and nothing is confirmed without you.`;
+    return `Every unanswered message is a patient who books elsewhere. An AI assistant replies in seconds — 24/7 and in the patient's language — on WhatsApp, Instagram and Facebook: it answers the routine questions (opening hours, parking, prices, which treatments you offer), proposes available appointment times, and collects what reception needs to confirm. The result: more inquiries turn into booked appointments — even after hours — instead of going to the clinic that replied first. It works alongside your booking system, not instead of it, and nothing is confirmed without you.`;
   }
   if (vertical === "realEstate") {
-    return `We help agencies stop losing leads: an AI assistant replies instantly to listing enquiries — the first to respond wins the client — captures the property of interest, budget and timing, and hands the qualified lead to your agent. It never replaces your work; nothing is decided without you.`;
+    return `In real estate, the first agency to reply usually wins the client — and the commission. An AI assistant replies to listing enquiries in seconds, 24/7 and in the buyer's language: it answers the first questions (price, size, availability, location), captures budget and timing, proposes a viewing time, and hands your agent a qualified lead. The result: more enquiries turn into viewings and signed deals — even after hours — instead of going cold or to a faster competitor. It never replaces your agents; nothing is decided without you.`;
   }
-  return `We help hospitality teams never miss an enquiry: an AI assistant replies to guests instantly — day and night, in English, German and French — collects dates and party size, and hands the qualified request to your team. It never replaces your staff; nothing is confirmed without you.`;
+  return `Every unanswered enquiry is a booking that goes to another property — or to the OTA. An AI assistant replies to guests in seconds — day and night, in their language — to the questions that decide a booking (availability, prices, check-in and parking, how to reach you), collects dates and party size, and hands your team a guest ready to confirm. The result: more enquiries turn into direct bookings — even overnight — instead of empty nights. It never replaces your staff; nothing is confirmed without you.`;
 }
 
 // One-line benefit reused in follow-ups.
@@ -168,18 +168,18 @@ function shortBenefit(vertical: Vertical, italian: boolean, multipleRecipients: 
       return "risponde a domande su orari, prezzi e trattamenti, propone gli orari per l'appuntamento e raccoglie i dati per la conferma — 24 ore su 24, nella lingua del paziente";
     }
     if (vertical === "realEstate") {
-      return "risponde all'istante ai contatti sugli annunci e li passa all'agente già qualificati";
+      return "risponde in pochi secondi ai contatti sugli annunci con prezzo, disponibilità e orari per le visite — così più contatti diventano visite invece di andare a un concorrente più veloce";
     }
-    return `risponde subito agli ospiti, anche in più lingue, e ${multipleRecipients ? "vi passa" : "Le passa"} le richieste già pronte`;
+    return "risponde agli ospiti in pochi secondi, nella loro lingua, con disponibilità, prezzi e check-in — trasformando più richieste in prenotazioni dirette, anche di notte";
   }
 
   if (vertical === "clinic") {
     return "answers questions like opening hours, prices and treatments, proposes appointment times, and collects what reception needs to confirm — 24/7, in the patient's language";
   }
   if (vertical === "realEstate") {
-    return "answers listing enquiries instantly and hands them to your agent already qualified";
+    return "answers listing enquiries in seconds with price, availability and viewing times — so more leads become viewings instead of going to a faster competitor";
   }
-  return "answers guests instantly, in multiple languages, and hands you ready-to-action requests";
+  return "answers guests in seconds, in their language, with availability, prices and check-in details — turning more enquiries into direct bookings, even overnight";
 }
 
 function audienceNoun(vertical: Vertical, italian: boolean): string {
@@ -211,17 +211,15 @@ function paragraphsToHtml(paragraphs: string[]): string {
     .join("\n");
 }
 
+const DEMO_LABEL_IT = "Lo veda dal vivo — una demo interattiva di un minuto, già impostata sul vostro settore:";
+const DEMO_LABEL_EN = "See it live — a one-minute interactive demo, pre-set for your sector:";
+
 function demoLineText(italian: boolean, url: string): string {
-  return italian
-    ? `Può vederlo in una demo interattiva di un minuto, già impostata sul vostro settore:\n${url}`
-    : `You can see it in a one-minute interactive demo, pre-set for your sector:\n${url}`;
+  return `${italian ? DEMO_LABEL_IT : DEMO_LABEL_EN}\n${url}`;
 }
 
 function demoLineHtml(italian: boolean, url: string): string {
-  const label = italian
-    ? "Può vederlo in una demo interattiva di un minuto, già impostata sul vostro settore:"
-    : "You can see it in a one-minute interactive demo, pre-set for your sector:";
-  return `${label}<br /><a href="${url}">${url}</a>`;
+  return `${italian ? DEMO_LABEL_IT : DEMO_LABEL_EN}<br /><a href="${url}">${url}</a>`;
 }
 
 export function buildEmail(row: OutreachRow, followUpStep: number): EmailContent {
@@ -235,7 +233,7 @@ export function buildEmail(row: OutreachRow, followUpStep: number): EmailContent
 
   if (followUpStep === 0) {
     if (italian) {
-      const offer = `Se preferisce, mi invii una domanda che ricevete spesso dai vostri ${audienceNoun(vertical, true)} e Le mostro come risponderebbe l'assistente, su misura per ${property}.`;
+      const offer = `Oppure mi risponda e Le preparo un esempio concreto su una domanda che ricevete spesso dai vostri ${audienceNoun(vertical, true)}, su misura per ${property}. Vuole vederlo?`;
       const paragraphs = [
         `${greeting},`,
         `${multipleRecipients ? "Vi scrivo" : "Le scrivo"} da TurboReplies. ${valueParagraph(vertical, true, multipleRecipients)}`,
@@ -259,7 +257,7 @@ export function buildEmail(row: OutreachRow, followUpStep: number): EmailContent
       };
     }
 
-    const offer = `If you prefer, send me a question you often get from ${audienceNoun(vertical, false)} and I'll show you exactly how the assistant would reply for ${property}.`;
+    const offer = `Or just reply and I'll build a quick example on a question your ${audienceNoun(vertical, false)} actually ask, tailored to ${property}. Worth a look?`;
     return {
       subject: firstSubject(vertical, false, property),
       text: [

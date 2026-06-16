@@ -76,7 +76,6 @@ RESEND_API_KEY=
 OUTREACH_FROM_EMAIL=hello@turboreplies.com
 OUTREACH_FROM_NAME=Federico | TurboReplies
 OUTREACH_REPLY_TO=hello@turboreplies.com
-MAX_EMAILS_PER_RUN=5
 CHECK_REPLIES=false
 ALLOW_SEND_IF_IMAP_FAILS=false
 IMAP_HOST=mail.privateemail.com
@@ -141,9 +140,6 @@ This sends through Resend and updates the sheet only after each successful send.
   - when `Replied? = TRUE`
   - when `Do Not Contact? = TRUE`
   - when `Status` is `Needs reply`, `Interested`, `Not interested`, or `Bad fit`
-- Sending limit:
-  - capped by `MAX_EMAILS_PER_RUN`
-
 ## IMAP reply detection
 
 When `CHECK_REPLIES=true`, the tool connects to IMAP before sending anything.

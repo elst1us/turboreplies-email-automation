@@ -277,7 +277,7 @@ function buildCandidate(row: OutreachRow, today: Date, now: Date): SendCandidate
         "Follow-up Step": "1",
         Notes: appendNote(row.cells.Notes, `First email sent via Resend (${threadToken})`, now)
       },
-      email: buildEmail(row, 0, threadToken)
+      email: buildEmail(row, 0)
     };
   }
 
@@ -294,7 +294,7 @@ function buildCandidate(row: OutreachRow, today: Date, now: Date): SendCandidate
         "Follow-up Step": "2",
         Notes: appendNote(row.cells.Notes, `Follow-up 1 sent via Resend (${threadToken})`, now)
       },
-      email: buildEmail(row, 1, threadToken)
+      email: buildEmail(row, 1)
     };
   }
 
@@ -307,7 +307,7 @@ function buildCandidate(row: OutreachRow, today: Date, now: Date): SendCandidate
         "Follow-up Step": "3",
         Notes: appendNote(row.cells.Notes, `Follow-up 2 sent via Resend (${threadToken})`, now)
       },
-      email: buildEmail(row, 2, threadToken)
+      email: buildEmail(row, 2)
     };
   }
 
@@ -321,7 +321,7 @@ function buildCandidate(row: OutreachRow, today: Date, now: Date): SendCandidate
         "Follow-up Step": "Done",
         Notes: appendNote(row.cells.Notes, `Follow-up 3 sent via Resend, sequence ended (${threadToken})`, now)
       },
-      email: buildEmail(row, 3, threadToken)
+      email: buildEmail(row, 3)
     };
   }
 
@@ -344,7 +344,6 @@ export function loadConfig(mode: "dry-run" | "send"): AppConfig {
 
   return {
     mode,
-    maxEmailsPerRun: numberEnv("MAX_EMAILS_PER_RUN", 5),
     checkReplies,
     allowSendIfImapFails: booleanEnv("ALLOW_SEND_IF_IMAP_FAILS", false),
     googleSheets: {
@@ -395,12 +394,11 @@ export async function runOutreach(config: AppConfig): Promise<void> {
 
         const email = textValue(row.cells.Email);
         const sentAt = parseSheetDate(row.cells["Date sent"]);
-        const threadToken = extractThreadToken(row.cells.Notes) ?? undefined;
         if (!email || !sentAt) {
           continue;
         }
 
-        const hasReply = await detector.hasReplySince(email, sentAt, threadToken);
+        const hasReply = await detector.hasReplySince(email, sentAt);
         if (!hasReply) {
           continue;
         }
@@ -440,15 +438,14 @@ export async function runOutreach(config: AppConfig): Promise<void> {
 
   const candidates = rows
     .map((row) => buildCandidate(row, today, now))
-    .filter((candidate): candidate is SendCandidate => candidate !== null)
-    .slice(0, config.maxEmailsPerRun);
+    .filter((candidate): candidate is SendCandidate => candidate !== null);
 
   if (candidates.length === 0) {
     console.log("No eligible emails found.");
     return;
   }
 
-  console.log(`Found ${candidates.length} eligible email(s); limit is ${config.maxEmailsPerRun}.`);
+  console.log(`Found ${candidates.length} eligible email(s).`);
 
   for (const candidate of candidates) {
     const email = textValue(candidate.row.cells.Email);

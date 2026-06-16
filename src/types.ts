@@ -51,7 +51,6 @@ export interface ImapConfig {
 
 export interface AppConfig {
   mode: OutreachMode;
-  maxEmailsPerRun: number;
   checkReplies: boolean;
   allowSendIfImapFails: boolean;
   googleSheets: GoogleSheetsConfig;

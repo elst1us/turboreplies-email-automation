@@ -12,7 +12,8 @@ const LAST_COLUMN_LETTER = "Q";
 const HEADER_ALIASES: Partial<Record<SheetColumn, string[]>> = {
   Property: ["Property/Business"]
 };
-const GOOGLE_REQUEST_RETRY_DELAYS_MS = [500, 1500, 3000];
+const GOOGLE_REQUEST_RETRY_DELAYS_MS = [1000, 2000, 4000, 8000, 15000];
+const GOOGLE_REQUEST_TIMEOUT_MS = 60000;
 
 function quoteSheetName(sheetName: string): string {
   return `'${sheetName.replace(/'/g, "''")}'`;
@@ -45,22 +46,29 @@ function extractErrorMessage(error: unknown): string {
   return String(error);
 }
 
-function isRetryableGoogleAuthError(error: unknown): boolean {
+function isRetryableGoogleRequestError(error: unknown): boolean {
   const message = extractErrorMessage(error);
 
   return [
     "oauth2.googleapis.com/token failed",
+    "sheets.googleapis.com",
     "getaddrinfo",
     "EAI_AGAIN",
     "ENOTFOUND",
     "ECONNRESET",
     "ETIMEDOUT",
-    "socket hang up"
+    "socket hang up",
+    "network timeout",
+    "failed, reason:"
   ].some((fragment) => message.includes(fragment));
 }
 
 function isGoogleTokenError(error: unknown): boolean {
   return extractErrorMessage(error).includes("oauth2.googleapis.com/token");
+}
+
+function isGoogleSheetsRequestError(error: unknown): boolean {
+  return extractErrorMessage(error).includes("sheets.googleapis.com");
 }
 
 export class GoogleSheetsClient {
@@ -85,7 +93,7 @@ export class GoogleSheetsClient {
       } catch (error) {
         lastError = error;
 
-        if (!isRetryableGoogleAuthError(error) || attempt === GOOGLE_REQUEST_RETRY_DELAYS_MS.length) {
+        if (!isRetryableGoogleRequestError(error) || attempt === GOOGLE_REQUEST_RETRY_DELAYS_MS.length) {
           break;
         }
 
@@ -95,7 +103,13 @@ export class GoogleSheetsClient {
 
     if (isGoogleTokenError(lastError)) {
       throw new Error(
-        "Google OAuth token request failed. Check your network/VPN/firewall and retry; the service account JSON path is already being read correctly."
+        "Google OAuth token request failed after extended retries. Slow or unstable networks, VPNs, proxies, or firewalls can cause this; the service account JSON path is already being read correctly."
+      );
+    }
+
+    if (isGoogleSheetsRequestError(lastError)) {
+      throw new Error(
+        "Google Sheets API request failed after extended retries. This is usually a slow or transient network/VPN/firewall issue rather than a sheet-config problem."
       );
     }
 
@@ -109,6 +123,8 @@ export class GoogleSheetsClient {
         spreadsheetId: this.config.sheetId,
         range,
         valueRenderOption: "UNFORMATTED_VALUE"
+      }, {
+        timeout: GOOGLE_REQUEST_TIMEOUT_MS
       })
     );
 
@@ -183,6 +199,8 @@ export class GoogleSheetsClient {
             };
           })
         }
+      }, {
+        timeout: GOOGLE_REQUEST_TIMEOUT_MS
       })
     );
   }

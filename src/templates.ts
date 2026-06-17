@@ -54,11 +54,6 @@ function propertyLabel(row: OutreachRow): string {
   return property || place || "your property";
 }
 
-function optionalHook(row: OutreachRow): string {
-  const hook = String(row.cells.Hook || "").trim();
-  return hook ? `\n\n${hook}` : "";
-}
-
 function normalizedLanguage(row: OutreachRow): string {
   return String(row.cells.Language || "").trim().toLowerCase();
 }
@@ -88,10 +83,6 @@ function contactGreeting(row: OutreachRow): string {
 
 function hasMultipleRecipients(row: OutreachRow): boolean {
   return ownerFirstNames(String(row.cells.Owner || "").trim()).length > 1;
-}
-
-function italianValuePronoun(multipleRecipients: boolean): string {
-  return multipleRecipients ? "per voi" : "per Lei";
 }
 
 // Hotel is the default so blank/unknown Vertical keeps the original hospitality copy.
@@ -138,27 +129,37 @@ function demoUrl(vertical: Vertical, locale: DemoLocale, followUpStep: number): 
   return `${origin}${pathAndQuery}${separator}${query}#${hash}`;
 }
 
-// What the assistant captures, used in the lead-with-value paragraph.
-function valueParagraph(vertical: Vertical, italian: boolean, multipleRecipients: boolean): string {
-  const you = multipleRecipients ? "voi" : "Lei";
+// One-line stake that opens the email (leads with the prospect's problem).
+function valueOpener(vertical: Vertical, italian: boolean): string {
+  if (italian) {
+    if (vertical === "clinic") return "Ogni messaggio senza risposta è un paziente che prenota altrove.";
+    if (vertical === "realEstate") return "Nel settore immobiliare chi risponde per primo di solito prende il cliente, e la provvigione.";
+    return "Ogni richiesta senza risposta è una prenotazione che va a un'altra struttura, o a un OTA.";
+  }
+  if (vertical === "clinic") return "Every unanswered message is a patient who books elsewhere.";
+  if (vertical === "realEstate") return "In real estate, the agency that replies first usually wins the client, and the commission.";
+  return "Every unanswered enquiry is a booking that goes to another property, or to an OTA.";
+}
 
+// The "how" paragraph: what it does + the money outcome. Introduces TurboReplies.
+function valueHow(vertical: Vertical, italian: boolean, multipleRecipients: boolean): string {
+  const you = multipleRecipients ? "voi" : "Lei";
   if (italian) {
     if (vertical === "clinic") {
-      return `Ogni messaggio senza risposta è un paziente che prenota altrove. Un assistente AI risponde in pochi secondi, 24 ore su 24 e nella lingua del paziente, su WhatsApp, Instagram e Facebook. Risponde alle domande ricorrenti (orari, parcheggio, prezzi, quali trattamenti offrite), propone gli orari disponibili per l'appuntamento e raccoglie i dati che servono alla reception per confermare. Così più richieste diventano appuntamenti prenotati, anche fuori orario, invece di andare allo studio che ha risposto per primo. Si affianca al vostro sistema di prenotazione, non lo sostituisce, e nulla viene confermato senza di ${you}.`;
+      return `TurboReplies è un assistente AI che risponde in pochi secondi, 24 ore su 24 e nella lingua del paziente, su WhatsApp, Instagram e Facebook. Risponde alle domande ricorrenti (orari, prezzi, trattamenti), propone gli orari per l'appuntamento e raccoglie i dati che servono alla reception, così più richieste diventano appuntamenti prenotati. Si affianca al vostro sistema di prenotazione; nulla viene confermato senza di ${you}.`;
     }
     if (vertical === "realEstate") {
-      return `Nel settore immobiliare chi risponde per primo di solito prende il cliente, e la provvigione. Un assistente AI risponde alle richieste sugli annunci in pochi secondi, 24 ore su 24 e nella lingua del cliente. Risponde alle prime domande (prezzo, metratura, disponibilità, zona), raccoglie budget e tempistiche, propone un orario per la visita e passa all'agente un contatto già qualificato. Così più richieste diventano visite e trattative chiuse, anche fuori orario, invece di raffreddarsi o andare a un concorrente più veloce. Non sostituisce gli agenti e nulla viene deciso senza di ${you}.`;
+      return `TurboReplies è un assistente AI che risponde alle richieste sugli annunci in pochi secondi, 24 ore su 24 e nella lingua del cliente. Risponde alle prime domande (prezzo, metratura, disponibilità, zona), raccoglie budget e tempistiche, propone una visita e passa all'agente un contatto qualificato, così più richieste diventano visite e trattative chiuse. Non sostituisce gli agenti; nulla viene deciso senza di ${you}.`;
     }
-    return `Ogni richiesta senza risposta è una prenotazione che va a un'altra struttura, o all'OTA. Un assistente AI risponde agli ospiti in pochi secondi, giorno e notte, nella loro lingua. Risponde alle domande che decidono una prenotazione (disponibilità, prezzi, check-in e parcheggio, come raggiungervi), raccoglie date e numero di ospiti e passa al vostro team un ospite pronto a confermare. Così più richieste diventano prenotazioni dirette, anche di notte, invece di notti vuote. Non sostituisce il personale e nulla viene confermato senza di ${you}.`;
+    return `TurboReplies è un assistente AI che risponde agli ospiti in pochi secondi, giorno e notte, nella loro lingua. Risponde alle domande che decidono una prenotazione (disponibilità, prezzi, check-in, parcheggio, come raggiungervi), raccoglie date e numero di ospiti e passa al vostro team un ospite pronto a confermare, così più richieste diventano prenotazioni dirette. Non sostituisce il personale; nulla viene confermato senza di ${you}.`;
   }
-
   if (vertical === "clinic") {
-    return `Every unanswered message is a patient who books elsewhere. An AI assistant replies in seconds, 24/7 and in the patient's language, on WhatsApp, Instagram and Facebook. It answers the routine questions (opening hours, parking, prices, which treatments you offer), proposes available appointment times, and collects what reception needs to confirm. So more inquiries turn into booked appointments, even after hours, instead of going to the clinic that replied first. It works alongside your booking system, not instead of it, and nothing is confirmed without you.`;
+    return `TurboReplies is an AI assistant that replies in seconds, 24/7 and in the patient's language, on WhatsApp, Instagram and Facebook. It answers the routine questions (hours, prices, treatments), proposes appointment times, and collects what reception needs to confirm, so more inquiries become booked appointments. It works alongside your booking system; nothing is confirmed without you.`;
   }
   if (vertical === "realEstate") {
-    return `In real estate, the first agency to reply usually wins the client, and the commission. An AI assistant replies to listing enquiries in seconds, 24/7 and in the buyer's language. It answers the first questions (price, size, availability, location), captures budget and timing, proposes a viewing time, and hands your agent a qualified lead. So more enquiries turn into viewings and signed deals, even after hours, instead of going cold or to a faster competitor. It never replaces your agents, and nothing is decided without you.`;
+    return `TurboReplies is an AI assistant that replies to listing enquiries in seconds, 24/7 and in the buyer's language. It answers the first questions (price, size, availability, location), captures budget and timing, proposes a viewing, and hands your agent a qualified lead, so more enquiries become viewings and signed deals. It never replaces your agents; nothing is decided without you.`;
   }
-  return `Every unanswered enquiry is a booking that goes to another property, or to the OTA. An AI assistant replies to guests in seconds, day and night, in their language. It answers the questions that decide a booking (availability, prices, check-in and parking, how to reach you), collects dates and party size, and hands your team a guest ready to confirm. So more enquiries turn into direct bookings, even overnight, instead of empty nights. It never replaces your staff, and nothing is confirmed without you.`;
+  return `TurboReplies is an AI assistant that replies to guests in seconds, day and night, in their language. It answers the questions that decide a booking (availability, prices, check-in, parking, how to reach you), collects dates and party size, and hands your team a guest ready to confirm, so more enquiries become direct bookings. It never replaces your staff; nothing is confirmed without you.`;
 }
 
 // One-line benefit reused in follow-ups.
@@ -234,21 +235,22 @@ export function buildEmail(row: OutreachRow, followUpStep: number): EmailContent
   if (followUpStep === 0) {
     if (italian) {
       const offer = `Oppure mi risponda e Le preparo un esempio concreto su una domanda che ricevete spesso dai vostri ${audienceNoun(vertical, true)}, su misura per ${property}. Vuole vederlo?`;
-      const paragraphs = [
+      const blocks = [
         `${greeting},`,
-        `${multipleRecipients ? "Vi scrivo" : "Le scrivo"} da TurboReplies. ${valueParagraph(vertical, true, multipleRecipients)}`,
-        `Guardando ${property}, ho pensato che potesse essere rilevante ${italianValuePronoun(multipleRecipients)}.${hook ? `\n\n${hook}` : ""}`,
+        valueOpener(vertical, true),
+        valueHow(vertical, true, multipleRecipients),
+        hook,
         demoLineText(true, url),
         offer,
         `Cordiali saluti,\nFederico\nTurboReplies`
       ];
       return {
         subject: firstSubject(vertical, true, property),
-        text: paragraphs.join("\n\n"),
+        text: blocks.filter(Boolean).join("\n\n"),
         html: paragraphsToHtml([
           `${greeting},`,
-          `${multipleRecipients ? "Vi scrivo" : "Le scrivo"} da TurboReplies. ${valueParagraph(vertical, true, multipleRecipients)}`,
-          `Guardando ${property}, ho pensato che potesse essere rilevante ${italianValuePronoun(multipleRecipients)}.`,
+          valueOpener(vertical, true),
+          valueHow(vertical, true, multipleRecipients),
           hook,
           demoLineHtml(true, url),
           offer,
@@ -258,20 +260,22 @@ export function buildEmail(row: OutreachRow, followUpStep: number): EmailContent
     }
 
     const offer = `Or just reply and I'll build a quick example on a question your ${audienceNoun(vertical, false)} actually ask, tailored to ${property}. Worth a look?`;
+    const blocks = [
+      `Hello,`,
+      valueOpener(vertical, false),
+      valueHow(vertical, false, multipleRecipients),
+      hook,
+      demoLineText(false, url),
+      offer,
+      `Best,\nFederico\nTurboReplies`
+    ];
     return {
       subject: firstSubject(vertical, false, property),
-      text: [
-        `Hello,`,
-        `I'm Federico from TurboReplies. ${valueParagraph(vertical, false, multipleRecipients)}`,
-        `Looking at ${property}, I thought it could be relevant for you.${optionalHook(row)}`,
-        demoLineText(false, url),
-        offer,
-        `Best,\nFederico\nTurboReplies`
-      ].join("\n\n"),
+      text: blocks.filter(Boolean).join("\n\n"),
       html: paragraphsToHtml([
         `Hello,`,
-        `I'm Federico from TurboReplies. ${valueParagraph(vertical, false, multipleRecipients)}`,
-        `Looking at ${property}, I thought it could be relevant for you.`,
+        valueOpener(vertical, false),
+        valueHow(vertical, false, multipleRecipients),
         hook,
         demoLineHtml(false, url),
         offer,

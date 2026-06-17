@@ -110,7 +110,7 @@ function withLocale(pathAndQuery: string, locale: string): string {
   return `/${locale}${pathAndQuery.startsWith("/") ? "" : "/"}${pathAndQuery}`;
 }
 
-function demoUrl(vertical: Vertical, locale: DemoLocale, followUpStep: number): string {
+function demoUrl(vertical: Vertical, locale: DemoLocale): string {
   const base = (process.env.OUTREACH_DEMO_URL || DEFAULT_DEMO_BASE).trim();
   const [rawPathAndQuery, existingHash] = base.split("#");
   const originMatch = rawPathAndQuery.match(/^https?:\/\/[^/]+/i);
@@ -118,13 +118,9 @@ function demoUrl(vertical: Vertical, locale: DemoLocale, followUpStep: number): 
   const pathAndQuery = withLocale(rawPathAndQuery.slice(origin.length) || "/", locale);
   const separator = pathAndQuery.includes("?") ? "&" : "?";
   const slug = DEMO_SLUG[vertical];
-  const query = [
-    `vertical=${slug}`,
-    "utm_source=outreach",
-    "utm_medium=email",
-    `utm_campaign=${slug}`,
-    `utm_content=step${followUpStep}`
-  ].join("&");
+  // Keep it short: vertical is functional (selects the demo and tells you which
+  // vertical the click came from); utm_source=outreach is the only tracking tag.
+  const query = [`vertical=${slug}`, "utm_source=outreach"].join("&");
   const hash = existingHash || "interactive-demos";
   return `${origin}${pathAndQuery}${separator}${query}#${hash}`;
 }
@@ -230,7 +226,7 @@ export function buildEmail(row: OutreachRow, followUpStep: number): EmailContent
   const property = propertyLabel(row);
   const vertical = detectVertical(row);
   const hook = String(row.cells.Hook || "").trim();
-  const url = demoUrl(vertical, demoLocale(row), followUpStep);
+  const url = demoUrl(vertical, demoLocale(row));
 
   if (followUpStep === 0) {
     if (italian) {

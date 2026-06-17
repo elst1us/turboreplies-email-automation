@@ -112,8 +112,10 @@ Record a manual first send:
 ```bash
 npm run mark-sent info@clinic.com            # by email
 npm run mark-sent 12 13                       # by row number
-npm run mark-sent --all                       # every To do lead
+npm run mark-sent all                         # every To do lead
 ```
+
+(`all` and `yes` also work as `--all` / `--yes`; the bare keywords avoid npm's `--` separator.)
 
 After you send the first email by hand (from `npm run draft`), this records it with the **same state transition the automated sender uses** — `Status = Active`, `Date sent = today`, `Follow-up Step = 1`, `Next Follow-up = today + 3 days` — so `npm run send` then drives the follow-ups identically. It asks for confirmation (skip with `--yes`).
 

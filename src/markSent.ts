@@ -28,12 +28,14 @@ function isFirstEmailCandidate(row: OutreachRow): boolean {
 
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
-  const markAll = args.includes("--all");
-  const autoYes = args.includes("--yes") || args.includes("-y");
-  const identifiers = args.filter((arg) => !arg.startsWith("-"));
+  // Accept bare keywords (`all`, `yes`) as well as flags (`--all`, `--yes`) so
+  // `npm run mark-sent all` works without npm's `--` separator.
+  const markAll = args.includes("--all") || args.includes("all");
+  const autoYes = args.includes("--yes") || args.includes("-y") || args.includes("yes");
+  const identifiers = args.filter((arg) => !arg.startsWith("-") && arg !== "all" && arg !== "yes");
 
   if (!markAll && identifiers.length === 0) {
-    console.error("Usage: npm run mark-sent <email|rowNumber> [more...]   (or --all for every To do lead)");
+    console.error("Usage: npm run mark-sent <email|rowNumber> [more...]   (or 'all' for every To do lead)");
     process.exit(1);
   }
 

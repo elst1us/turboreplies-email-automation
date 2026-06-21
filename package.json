@@ -11,7 +11,7 @@
   "dependencies": {
     "dotenv": "^16.6.1",
     "googleapis": "^150.0.1",
-    "imapflow": "^1.1.1",
+    "imapflow": "^1.4.2",
     "resend": "^4.7.0"
   },
   "devDependencies": {
